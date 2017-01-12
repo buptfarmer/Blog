@@ -1,0 +1,791 @@
+# 2017 Schedule
+
+## 目录
+- [ ] ConstraintLayout 
+- [ ] DataBinding
+
+
+## [] Constraint Layout
+
+### how to use ConstraintLayout 
+[Official Guide](https://developer.android.com/training/constraint-layout/index.html)
+
+build.gradle 文件中添加依赖
+
+```config
+dependencies {
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
+}
+```
+在使用过程中已经从 beta1 变成了 beta4 了。很快应该有正式版，注意更新版本。
+
+#### 两种方式使用 ConstraintLayout
+##### 把已有的 layout 转成 ConstraintLayout
+注意是在`Design` 页面 中的`Component Tree` 中找到对应 layout， 右键，最后一项里 `Convert xxxLayout to ConstraintLayout` , 不是在 `text`页面。
+
+自动转换的这种，编辑器会自动添加一些约束， 会尽力保持和原布局一致，但是在实际使用中发现自动转换的基本都不能用， 不如重新写来的方便。
+
+##### 在`Text`页面中直接写 ConstraintLayout
+重新写，或者直接修改原有 layout 都可以。
+
+#### ConstraintLayout 约束`constraint`
+看过[官方文档](https://developer.android.com/training/constraint-layout/index.html)中的视频介绍可以看到，视频中介绍了鼠标点击的方式和自动的方式来设置约束。 在我的实践中感觉鼠标点选问题只是看起来很美好，有如下问题
+
+- 图形方式编辑页面刷新速度较慢
+- 添加约束不精准，尤其是页面复杂的时候。
+- 切回`text`方式的时候，会有一定的自动调整，行为比较难预测。 
+
+因此，我认为图形界面仅适用于看效果，和初期理解，务必坚持使用文本方式`text`的编辑方式
+
+位置节点(`handle or anchor`)包括:
+
+- `Top`, `Bottom`, `Left`, `Right`, `BaseLine`
+
+约束有下列要求：
+
+- 每个 `view` 至少要有2个约束：1个水平方向，1个垂直方向
+- 垂直的位置节点(`handle or anchor`)必须依赖的是垂直的位置节点，水平的位置节点必须依赖水平的位置节点。 `GuideLine`也是一样，垂直的`GuideLine` 依赖垂直的`GuideLine` ， 水平的`GuideLine` 依赖水平的`GuideLine`
+- 一个位置节点可以被多个位置节点依赖，但只能依赖一个其他位置节点
+
+约束`constraint`包括：
+
+- `Parent constraint` 依赖父容器，比如：```app:layout_constraintLeft_toLeftOf="parent"` ，左边和父容器的左边对齐
+- `Position constraint` 和`LinearLayout` 等的margin 用法相同
+- `Baseline constraint` 和 `RelativeLayout`中的`alignBaseLine` 意思相同，是垂直方向的约束
+- `Alignment constraint` 依赖同级元素， 其实和`Parent constraint`是不同是，依赖的是同级元素
+- ***新功能*** `Constraint to guideline` 依赖辅助线， 依赖的是辅助线。 辅助线是新添加的功能，类似 PS 中的辅助线。
+ 
+ 自动布局 不建议使用自动布局， 原因和自动转换时是一样的问题。
+ 
+#### 在约束下调整大小
+3种类型：
+
+- 固定大小， `30dp`, `30px`, `30sp`
+- `wrap_content` 同之前的`wrap_content`
+- 填充约束`0dp`, 不要使用`fill_parent`和`match_parent` ，但是意思和`match_parent`差不多，都是在约束范围内尽量填充。
+
+#### 调整 margin 
+和之前一样
+
+#### ***新功能*** 调整占比 `bias`
+相比原来的仅有的3种，增加了任意值的占比。比如占20% `bias=0.2`
+原有的对齐方式就是占比中的3种特殊情况：
+
+- 居中 相当于 `bias=0.5`, 
+- 靠左或者靠上相当于`bias=0`， 
+- 靠右或者靠下相当于`bias=1`
+
+
+
+### ConstraintLayout 的几个特性
+- 约束依赖的对象 `gone`的时候，会自动依赖上一级。 `RelativeLayout` 中无法实现
+- 依赖的对象`gone`的时候，可以设置单独的 `goneMargin`。 `RelativeLayout` 中无法实现
+- 辅助线设计， 可以设置任意位置，任意百分比的辅助线，对于一些复杂布局来说非常方便。结合约束，可以实现按百分比设置 `view`的大小，按任意位置设置 `view`的位置
+ 
+### 常用功能
+#### 单个 `View` 布局：
+- 左对齐
+- 右对齐
+- 居中对齐
+- 相对父容器左20%，右80%。是空白区域的比例2：8，不是占父容器的20%位置。 注意区别下面一条
+- 相对20%的辅助线， 是占父容器的20%的位置。 对比上一条，见图二者是不同的
+- marginLeft 20dp
+- 相对20dp 的辅助线
+
+
+![水平对齐功能](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constraint_horizontal.png?raw=true)
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="to parent left"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="to parent right"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="center horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="20% left of parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.2"
+        />
+
+</android.support.constraint.ConstraintLayout>
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/vertical_20_percent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.2"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="To left of a 20% guideline"
+        app:layout_constraintLeft_toLeftOf="@id/vertical_20_percent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/vertical_20_dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="20dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="To left of a 20dp guideline"
+        app:layout_constraintLeft_toLeftOf="@id/vertical_20_dp"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:layout_marginLeft="20dp"
+        android:text="marginLeft 20dp to the parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
+```
+
+### 两个 view 的布局
+本节的内容包括:
+
+- top_topOf
+- top_bottomOf
+- bottom_bottomOf
+- bottom_topOf
+- left_leftOf
+- left_rightOf
+- right_rightOf
+- right_leftOf
+
+
+- top_topOf
+- top_bottomOf
+
+![top_topOf](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_top.png?raw=true)
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:id="@+id/top_target_text"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/top_topOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="top_topOf"
+        app:layout_constraintLeft_toRightOf="@id/top_target_text"
+        app:layout_constraintTop_toTopOf="@id/top_target_text"
+        />
+
+    <TextView
+        android:id="@+id/top_bottomOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="top_bottomOf"
+        app:layout_constraintLeft_toRightOf="@id/top_target_text"
+        app:layout_constraintTop_toBottomOf="@id/top_target_text"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+
+- bottom_bottomOf
+- bottom_topOf
+ 
+![bottom](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_bottom.png?raw=true)
+ 
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:id="@+id/bottom_target_text"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/bottom_topOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom_topOf"
+        app:layout_constraintLeft_toRightOf="@id/bottom_target_text"
+        app:layout_constraintBottom_toTopOf="@id/bottom_target_text"
+        />
+
+    <TextView
+        android:id="@+id/bottom_bottomOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom_bottomOf"
+        app:layout_constraintLeft_toRightOf="@id/bottom_target_text"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_target_text"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+
+- left_leftOf
+- left_rightOf
+ 
+![left](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_left.png?raw=true)
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:id="@+id/left_target_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target Text is long"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/left_leftOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:textSize="11sp"
+        android:text="left_leftOf"
+        app:layout_constraintLeft_toLeftOf="@id/left_target_text"
+        app:layout_constraintTop_toBottomOf="@id/left_target_text"
+        />
+
+    <TextView
+        android:id="@+id/left_rightOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:textSize="11sp"
+        android:text="left_rightOf"
+        app:layout_constraintLeft_toRightOf="@id/left_target_text"
+        app:layout_constraintTop_toBottomOf="@id/left_target_text"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+ 
+- right_rightOf
+- right_leftOf
+
+![top_topOf](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_right.png?raw=true)
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:id="@+id/right_target_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target Text is long"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/right_leftOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:textSize="11sp"
+        android:text="right_leftOf"
+        app:layout_constraintRight_toLeftOf="@id/right_target_text"
+        app:layout_constraintTop_toBottomOf="@id/right_target_text"
+        />
+
+    <TextView
+        android:id="@+id/right_rightOf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:textSize="11sp"
+        android:text="right_rightOf"
+        app:layout_constraintRight_toRightOf="@id/right_target_text"
+        app:layout_constraintTop_toBottomOf="@id/right_target_text"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+- baselineof
+
+![top_topOf](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_baseline.png?raw=true)
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:id="@+id/baseline_target_text"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:textSize="11sp"
+        android:text="baselineOf"
+        app:layout_constraintLeft_toRightOf="@id/baseline_target_text"
+        app:layout_constraintBaseline_toBaselineOf="@id/baseline_target_text"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:textSize="25sp"
+        android:text="baselineOf"
+        app:layout_constraintRight_toLeftOf="@id/baseline_target_text"
+        app:layout_constraintBaseline_toBaselineOf="@id/baseline_target_text"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+
+### 多个 view 的布局
+本节的内容包括
+
+- gone的使用
+- margingone 的使用
+
+- gone的使用
+
+![gone](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_gone.png?raw=true)
+
+```xml
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline_50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"/>
+
+    <TextView
+        android:id="@+id/gone_target_text_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="@id/guideline_50"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/right_bottom_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 1"
+        android:textSize="11sp"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="@+id/gone_target_text_right"
+        app:layout_constraintTop_toBottomOf="@+id/gone_target_text_right"
+        />
+
+    <TextView
+        android:id="@+id/right_bottom_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 2"
+        android:textSize="11sp"
+        app:layout_constraintLeft_toLeftOf="@+id/gone_target_text_right"
+        app:layout_constraintTop_toBottomOf="@+id/right_bottom_1"
+        />
+
+    <TextView
+        android:id="@+id/gone_target_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/guideline_50"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/left_bottom_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 1"
+        android:textSize="11sp"
+        app:layout_constraintLeft_toLeftOf="@+id/gone_target_text"
+        app:layout_constraintTop_toBottomOf="@+id/gone_target_text"
+        />
+
+    <TextView
+        android:id="@+id/left_bottom_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 2"
+        android:textSize="11sp"
+        app:layout_constraintLeft_toLeftOf="@+id/gone_target_text"
+        app:layout_constraintTop_toBottomOf="@+id/left_bottom_1"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+
+- margingone 的使用
+
+marginGone 设置的依赖的 `view` 在 `gone` 时的 margin, 可以分别设置`marginLeft`,`marginRight`,`marginTop`和`marginBottom`.本例中设置的`marginTop`
+
+![gone](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_gone_margin.png?raw=true)
+
+```xml
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline_50_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"/>
+
+    <TextView
+        android:id="@+id/gone_margin_target_text_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="@id/guideline_50_margin"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/right_bottom_1_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 1"
+        android:textSize="11sp"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="@+id/gone_margin_target_text_right"
+        app:layout_constraintTop_toBottomOf="@+id/gone_margin_target_text_right"
+        />
+
+    <TextView
+        android:id="@+id/right_bottom_2_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 2"
+        android:textSize="11sp"
+        app:layout_constraintLeft_toLeftOf="@+id/right_bottom_1_margin"
+        app:layout_constraintTop_toBottomOf="@+id/right_bottom_1_margin"
+        app:layout_goneMarginTop="11dp"
+        />
+
+    <TextView
+        android:id="@+id/gone_margin_target_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/guideline_50_margin"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/left_bottom_1_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 1"
+        android:textSize="11sp"
+        app:layout_constraintLeft_toLeftOf="@+id/gone_margin_target_text"
+        app:layout_constraintTop_toBottomOf="@+id/gone_margin_target_text"
+        />
+
+    <TextView
+        android:id="@+id/left_bottom_2_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_deep_orange"
+        android:text="bottom 2"
+        android:textSize="11sp"
+        app:layout_constraintLeft_toLeftOf="@+id/left_bottom_1_margin"
+        app:layout_constraintTop_toBottomOf="@+id/left_bottom_1_margin"
+        />
+</android.support.constraint.ConstraintLayout>
+```
+
+
+### style 里 的使用
+ ConstraintLayout 的属性多一些，写多了肯定想简化成 style 的形式。写成 style 时要注意ConstraintLayout 的属性属于自定义属性， 在 style 文件中不用写命名空间，直接写属性值即可。
+ 
+![gone](https://github.com/buptfarmer/Blog/blob/master/img/2017_01_ConstraintLayout/constriant_gone_style.png?raw=true)
+ 
+ ```xml
+<style name="ConstraintStyled">
+    <item name="layout_constraintLeft_toLeftOf">parent</item>
+    <item name="layout_constraintRight_toRightOf">parent</item>
+    <item name="layout_constraintTop_toTopOf">parent</item>
+    <item name="layout_constraintBottom_toBottomOf">parent</item>
+</style>
+
+
+<android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/common_blue_grey">
+
+    <TextView
+        android:id="@+id/styled_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_blue"
+        android:text="Target"
+        android:textSize="13sp"
+        style="@style/ConstraintStyled"
+        />
+
+</android.support.constraint.ConstraintLayout>
+ ```
+
+
+### 几个经验使用心得
+- `Design`模式用来看看效果还行，别指望用来写代码
+- 布局的时候综合使用`LinearLayout` 和`ConstraintLayout` ，不要全篇使用一个 `ConstraintLayout`, 那样布局太平，不利于维护代码。 建议明显的线性布局依然使用`LinearLayout`,对于理清思路，日后维护都比较好。比较复杂的布局使用`ConstraintLayout`。
+- `RelativeLayout`可以不用。
+- id 的依赖不是强制按代码先后，可以交叉依赖。 不像 `RelativeLayout`中被依赖的 id 必须先定义。
+
+
+### compare to LinearLayout and RelativeLayout
+
+ todo performance
+
+    
+## [] Data Binding
+
+
+## [] Note about 《Write Greate Code》
+
+## [] Note about 《Data structure and Algorithm in Java》
+
+## [ ] 雅思报名信息
+雅思考试报名表
+
+个人基本信息
+
+*姓名	陈 程
+
+*拼音姓名	CHEN CHENG
+
+*性别	男
+
+*出生日期	1987年4月8日
+
+*证件类型	中华人民共和国二代居民身份证
+
+*证件号码	640122198704080010
+
+*证件有效期	2036-08-01
+
+*手机号码	13581974227,13811845166
+
+*邮寄地址	北京市 昌平区 西三旗新康园10号楼508室 陈 程(CHEN CHENG) 收
+
+*邮政编码	100096
+
+考试信息
+*考试	雅思考试
+
+*笔试日期	2017年3月25日 星期六
+
+*口试日期	请注意，口试可能安排在笔试前一周至笔试后一周的任意一天，口笔试场地和地址可能不同于考点场地和地址。口语考试预订将于报名截止日期前两天开放，同报名截止日期结束。（详见《雅思考试考生须知》）
+
+*考点名称	北京语言大学
+
+*考试类型	学术类
+
+## 雅思考试
+### 听力
+- 共40分钟（30分钟答题+10分钟誊写答案）
+- 4段语音 40体
+
+
+### 阅读
+- 60分钟 3篇文章 
+- 40题 
+
+### 分数
+
+九分制分数	 | 听力答对数	 | 阅读（A类）答对数 | 阅读（G类）答对数
+--------- | ----------- | -------------- | ----------
+9.0 | 39-40 | 	39-40 | 	40
+8.5 | 	37-38 | 	37-38 | 38-39
+8.0 | 	35-36 | 	35-36	
+7.5 | 	33-34	 | 33-34 | 	35-37	
+<mark>7.0</mark>|<mark>30-32</mark>| <mark>30-32</mark>
+6.5 | 	27-29	 | 27-29	 | 26-34	2.5
+6.0 | 	23-26	 | 23-26	
+5.5 | 	20-22 | 	20-22 | 	18-25
+
+### 写作
+- 共两部分，第一部分20分钟， 第二部分40分钟
+- 第一部分通常考题以图片、表格坐标、曲线图为基本形式，考生根据所给的资料，写出150个字以上的文章来叙述主题，组织并探讨主题，提出比较支持的论点。不少于150字
+- 第二部分考生就考题的主题，用250字详加发表意见，通常考生被要求用几种方式之一来做为架构解决问题、表达自己的意见、支持或争辩考题所给予的讯息。
+
+### 口语
+- 三部分 11-14分钟谈话，无明显区分，无间断。
+- 第一阶段 会面，寒暄，考官会鼓励（引导）多谈谈一般话题（生活作息、文化习惯、个人兴趣等等
+- 第二阶段 主题卡，共3-4分钟， 其中1分钟准备时间， 之后根据要求对该话题进行2分钟个人观点阐述。 
+- 第三阶段 灵活讨论， 共4-5分钟。就第二部分所提及的话题进行深入的双向讨论，或者其他话题。 
+
+## visa 准备
+- [189 visa https://www.border.gov.au/Trav/Visa-1/189-](https://www.border.gov.au/Trav/Visa-1/189-)
+- [找工作 https://www.seek.com.au/jobs?keywords=android](https://www.seek.com.au/jobs?keywords=android)
+
+
